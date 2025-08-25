@@ -16,11 +16,17 @@ class Mainpage extends StatelessWidget {
       appBar: AppBar(),
       body: Center(
         child: Padding(padding: EdgeInsets.all(13),
-            child: ListView(
+            child: Column(
             children: [
                 InputTextField(),
                 Divider(),
-                TokenList()
+                Expanded(
+                  child: ListView(
+                    children: [
+                      TokenList()
+                    ],
+                  ),
+                )
               ],
             ),
           )
@@ -66,7 +72,7 @@ class TokenList extends StatelessWidget {
       return Column(
         children: snapshot.data!.map((e) {
           return ListTile(
-            title: Text(e.word),
+            title: TokenCard(token: e),
           );
         },).toList()
       );
@@ -75,6 +81,54 @@ class TokenList extends StatelessWidget {
   }
 }
 
+class TokenDisplay extends StatelessWidget {
+  final DictionaryEntry token;
+  const TokenDisplay({super.key, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(token.word, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+            Text(token.hiraganaReading, style: TextStyle(fontSize: 16),),
+            if(token.kanji.isNotEmpty)
+              Text("Kanji: ${token.kanji.map((e) => e.surface).join(", ")}", style: TextStyle(fontSize: 16),),
+            if(token.kanjiReading.isNotEmpty)
+              Text("Kanji Reading: ${token.kanjiReading}", style: TextStyle(fontSize: 16),),
+            
+          ],
+        );
+  }
+}
+
+
+class TokenCard extends StatelessWidget {
+  
+  const TokenCard({super.key, required this.token});
+  final DictionaryEntry token;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card.outlined(
+      
+      child: Padding(
+        padding: EdgeInsets.all(13),
+        child: Row(
+          children: [
+            TokenDisplay(token: token),
+            Spacer(),
+            OutlinedButton(
+              onPressed: (){}, 
+              child: const Text("Add")
+            )
+          ],
+        )
+      )
+    );
+  }
+}
 
 class InputTextField extends StatelessWidget {
   const InputTextField({super.key});
