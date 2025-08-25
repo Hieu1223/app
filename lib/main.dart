@@ -5,12 +5,17 @@ import 'package:app/services/tokenization/tokenizer.dart';
 import 'package:app/viewmodels/mainpageviewmodel.dart';
 import 'package:app/views/mainpage.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Tokenizer.init(KuromojiTokenizer());
-  await Dictionary.init(LocalDictionary());
+  if(await Dictionary.init(LocalDictionary())){
+    Logger().d("Dictionary initialized");
+  } else {
+    Logger().e("Failed to initialize dictionary");
+  }
   runApp(const MainApp());
 }
 

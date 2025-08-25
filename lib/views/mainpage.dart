@@ -29,6 +29,25 @@ class Mainpage extends StatelessWidget {
   }
 }
 
+class TokenizationProgressBar extends StatelessWidget {
+  const TokenizationProgressBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<MainpageViewModel>();
+    return Column(
+      children: [
+        LinearProgressIndicator(
+          value: vm.progress,
+        ),
+        Text(vm.progressComment)
+      ],
+    );
+  }
+}
+
+
+
 class TokenList extends StatelessWidget {
   const TokenList({super.key});
 
@@ -39,11 +58,9 @@ class TokenList extends StatelessWidget {
 
 
     return FutureBuilder(future: lookUpResult, builder: (context, snapshot) {
-      if(snapshot.connectionState == ConnectionState.waiting){
+      if(snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData){
         return Center(
-          child: LinearProgressIndicator(
-            value: vm.progress,
-          ),
+          child: TokenizationProgressBar()
         );
       }
       return Column(
@@ -59,14 +76,8 @@ class TokenList extends StatelessWidget {
 }
 
 
-class InputTextField extends StatefulWidget {
+class InputTextField extends StatelessWidget {
   const InputTextField({super.key});
-
-  @override
-  State<InputTextField> createState() => _InputTextFieldState();
-}
-
-class _InputTextFieldState extends State<InputTextField> {
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +87,8 @@ class _InputTextFieldState extends State<InputTextField> {
     }
     return TextField(
       controller: vm.textController,
-      onSubmitted: onSubmit,
+      onSubmitted: !vm.allowSubmit ? null : onSubmit,
+      enabled: vm.allowSubmit,
       decoration: InputDecoration(
         suffixIcon: IconButton(onPressed: (){onSubmit(vm.textController.text);}, icon: Icon(Icons.send)),
         border: OutlineInputBorder(),
