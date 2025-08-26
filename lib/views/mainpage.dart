@@ -1,3 +1,4 @@
+import 'package:app/models/deck_model.dart';
 import 'package:app/models/dictionary_entry.dart';
 import 'package:app/viewmodels/mainpageviewmodel.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class Mainpage extends StatelessWidget {
             children: [
                 InputTextField(),
                 Divider(),
+                TokenListMenu(),
                 Expanded(
                   child: ListView(
                     children: [
@@ -52,6 +54,108 @@ class TokenizationProgressBar extends StatelessWidget {
   }
 }
 
+class DeactivatableSelectButton extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onPressed;
+  final Widget child;
+  const DeactivatableSelectButton({super.key, required this.enabled, required this.onPressed, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: enabled ? onPressed : null,
+      child: child,
+    );
+  }
+}
+
+class TokenListMenu extends StatelessWidget {
+  const TokenListMenu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<MainpageViewModel>();
+    bool enabled = vm.enabledSelectBoxes;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 13,
+      children: [
+        DeactivatableSelectButton(enabled: enabled, onPressed: (){vm.selectBoxState.selectAll(); vm.notify();}, child: Text("Select All")),
+        DeactivatableSelectButton(enabled: enabled, onPressed: (){vm.selectBoxState.clear();vm.notify();}, child: Text("Deselect All")),
+        DeactivatableSelectButton(enabled: enabled, onPressed: (){}, child: Text("Blacklist Selected")),
+        DeactivatableSelectButton(
+          enabled: enabled, 
+          onPressed: (){
+            if(vm.selectBoxState.isAllFalse()){
+              
+              final snackBar = SnackBar(
+                content: Text("No tokens selected"),
+                action: SnackBarAction(
+                  label: "Close", 
+                  onPressed: ()=>{
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar()
+                  }),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              return;
+            }
+
+            showDialog(context: context, builder: (context) {
+              return AddToDeckDialog();
+            },);
+          }, 
+          child: Text("Add Selected")),
+      ],
+    );
+  }
+}
+
+
+class AddToDeckDialog extends StatelessWidget {
+  const AddToDeckDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Add to Deck"),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView(
+          children: context.read<MainpageViewModel>().getDecks().indexed.map((deck) => DeckListTile(deck: deck.$2,index: deck.$1,)).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: (){Navigator.of(context).pop(false);}, child: Text("Cancel")),
+        TextButton(onPressed: (){
+            Navigator.of(context).pop(true);
+          }, 
+          child: Text("Add")
+        ),
+      ],
+    );
+  }
+}
+
+class DeckListTile extends StatefulWidget {
+  final DeckModel deck;
+  final int index;  
+  const DeckListTile({super.key,required this.deck, required this.index});
+
+  @override
+  State<DeckListTile> createState() => _DeckListTileState();
+}
+
+class _DeckListTileState extends State<DeckListTile> {
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<MainpageViewModel>();
+    return ListTile(
+      title: Text(widget.deck.name),
+      subtitle: Text("${widget.deck.cardCount} cards, ${widget.deck.learntCount} learnt, ${widget.deck.fluentCount} fluent"),
+      trailing: Checkbox(value: vm.deckSelectBoxState.states[widget.index], onChanged: (value){vm.deckSelectBoxState.toggle(widget.index); vm.notify();}),
+    );
+  }
+}
 
 
 class TokenList extends StatelessWidget {
@@ -60,7 +164,7 @@ class TokenList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<MainpageViewModel>();
-    Future<List<DictionaryEntry>> lookUpResult = vm.lastLookUpResult;
+    Future<List<DictionaryEntry>> lookUpResult = vm.lastLookUpResultFuture;
 
 
     return FutureBuilder(future: lookUpResult, builder: (context, snapshot) {
@@ -70,9 +174,10 @@ class TokenList extends StatelessWidget {
         );
       }
       return Column(
-        children: snapshot.data!.map((e) {
+        children: snapshot.data!.indexed.map((i) {
+          var (index, e) = i;
           return ListTile(
-            title: TokenCard(token: e),
+            title: TokenCard(token: e,index: index),
           );
         },).toList()
       );
@@ -103,12 +208,27 @@ class TokenDisplay extends StatelessWidget {
   }
 }
 
+class TokenCardCheckBox extends StatefulWidget {
+  final int index;
+  const TokenCardCheckBox({super.key, required this.index});
+
+  @override
+  State<TokenCardCheckBox> createState() => _TokenCardCheckBoxState();
+}
+
+class _TokenCardCheckBoxState extends State<TokenCardCheckBox> {
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<MainpageViewModel>();
+    return Checkbox(value: vm.selectBoxState.states[widget.index], onChanged: (value){vm.selectBoxState.toggle(widget.index); vm.notify();});
+  }
+}
 
 class TokenCard extends StatelessWidget {
   
-  const TokenCard({super.key, required this.token});
+  const TokenCard({super.key, required this.token, required this.index});
   final DictionaryEntry token;
-
+  final int index;
   @override
   Widget build(BuildContext context) {
     return Card.outlined(
@@ -119,10 +239,7 @@ class TokenCard extends StatelessWidget {
           children: [
             TokenDisplay(token: token),
             Spacer(),
-            OutlinedButton(
-              onPressed: (){}, 
-              child: const Text("Add")
-            )
+            TokenCardCheckBox(index: index,)
           ],
         )
       )
@@ -130,23 +247,57 @@ class TokenCard extends StatelessWidget {
   }
 }
 
-class InputTextField extends StatelessWidget {
+class InputTextField extends StatefulWidget {
   const InputTextField({super.key});
+
+  @override
+  State<InputTextField> createState() => _InputTextFieldState();
+}
+
+class _InputTextFieldState extends State<InputTextField> {
+  bool expanded = true; // starts expanded
 
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<MainpageViewModel>(context);
-    void onSubmit(String text){
+
+    void onSubmit(String text) {
       vm.lookUp(text);
+      setState(() {
+        expanded = false; // shrink after submit
+      });
     }
-    return TextField(
+
+    final textField = TextField(
       controller: vm.textController,
       onSubmitted: !vm.allowSubmit ? null : onSubmit,
       enabled: vm.allowSubmit,
+      minLines: 3,
+      maxLines: expanded ? null : 3, // unlimited when expanded
       decoration: InputDecoration(
-        suffixIcon: IconButton(onPressed: (){onSubmit(vm.textController.text);}, icon: Icon(Icons.send)),
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
+        suffixIcon: expanded
+            ? IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: () => onSubmit(vm.textController.text),
+              )
+            : null,
       ),
+    );
+
+    final expandCollapseButton = Center(
+      child: TextButton(
+        onPressed: () => setState(() => expanded = !expanded),
+        child: Text(expanded ? "Collapse" : "Expand"),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        textField,
+        expandCollapseButton,
+      ],
     );
   }
 }
