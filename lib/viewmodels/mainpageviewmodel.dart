@@ -2,43 +2,13 @@ import 'package:app/models/deck_model.dart';
 import 'package:app/models/dictionary_entry.dart';
 import 'package:app/services/dictionary/dictionary.dart';
 import 'package:app/services/tokenization/tokenizer.dart';
+import 'package:app/views/common/check_box_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 
 
-class CheckBoxStates {
-  late List<bool> states;
 
-  CheckBoxStates(int length) {
-    states = List.filled(length, false);
-  }
-
-  void toggle(int index) {
-    states[index] = !states[index];
-  }
-
-  void clear() {
-    for (int i = 0; i < states.length; i++) {
-      states[i] = false;
-    }
-  }
-
-  void selectAll() {
-    for (int i = 0; i < states.length; i++) {
-      states[i] = true;
-    }
-  }
-
-  bool isAllFalse() {
-    for (int i = 0; i < states.length; i++) {
-      if (states[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-}
 
 
 class MainpageViewModel extends ChangeNotifier {
@@ -59,18 +29,18 @@ class MainpageViewModel extends ChangeNotifier {
 
   //look up logic
   Future<List<DictionaryEntry>> lastLookUpResultFuture = Future(()=>[]);
-  List<DictionaryEntry> _lastLookUpResult = List.empty();
+  List<DictionaryEntry> lastLookUpResult = List.empty();
 
 
 
   void lookUp(String text) async{
     allowSubmit = false;
     enabledSelectBoxes = false;
-    _lastLookUpResult = List.empty();
+    lastLookUpResult = List.empty();
     notifyListeners();
     lastLookUpResultFuture = _doLookUp(text);
-    _lastLookUpResult =  await lastLookUpResultFuture;
-    selectBoxState = CheckBoxStates(_lastLookUpResult.length);
+    lastLookUpResult =  await lastLookUpResultFuture;
+    selectBoxState = CheckBoxStates(lastLookUpResult.length);
     allowSubmit = true;
     enabledSelectBoxes = true;
     notifyListeners();
@@ -102,7 +72,7 @@ class MainpageViewModel extends ChangeNotifier {
   void addSelectionToDeck(){
     for(int i = 0; i < selectBoxState.states.length; i++){
       if(selectBoxState.states[i]){
-        Logger().d("Adding ${_lastLookUpResult[i].word} to deck");
+        Logger().d("Adding ${lastLookUpResult[i].word} to deck");
       }
     }
   }

@@ -3,7 +3,7 @@ import 'package:app/services/dictionary/local_dictionary.dart';
 import 'package:app/services/tokenization/kuromoji_tokenizer.dart';
 import 'package:app/services/tokenization/tokenizer.dart';
 import 'package:app/viewmodels/mainpageviewmodel.dart';
-import 'package:app/views/mainpage.dart';
+import 'package:app/views/main_page/mainpage.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
