@@ -2,7 +2,7 @@ import 'package:app/services/dictionary/dictionary.dart';
 import 'package:app/services/dictionary/local_dictionary.dart';
 import 'package:app/services/tokenization/kuromoji_tokenizer.dart';
 import 'package:app/services/tokenization/tokenizer.dart';
-import 'package:app/viewmodels/mainpageviewmodel.dart';
+import 'package:app/viewmodels/tokenization_page_view_model.dart';
 import 'package:app/views/main_page/mainpage.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -24,13 +24,9 @@ class MainApp extends StatelessWidget {
   const MainApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context)=>MainpageViewModel())
-      ],
-      child: MaterialApp(
-        home: Mainpage(),
-      ),
+    return MaterialApp(
+      title: 'Japanese Dictionary',
+      home: const Mainpage(),
     );
   }
 }

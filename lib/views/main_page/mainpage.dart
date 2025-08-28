@@ -1,8 +1,10 @@
+import 'package:app/viewmodels/tokenization_page_view_model.dart';
 import 'package:app/views/common/app_bar.dart';
 import 'package:app/views/main_page/components/input_text_field.dart';
 import 'package:app/views/main_page/components/token_list.dart';
 import 'package:app/views/main_page/components/token_list_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 
 
@@ -15,10 +17,12 @@ class Mainpage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: TopAppBar(),
-      body: Center(
-        child: Padding(padding: EdgeInsets.all(13),
+      body: ChangeNotifierProvider(
+        create: (context) =>TokenizationPageViewModel(),
+        child: Center(
+          child: Padding(padding: EdgeInsets.all(13),
             child: Column(
-            children: [
+              children: [
                 InputTextField(),
                 Divider(),
                 TokenListMenu(),
@@ -33,6 +37,7 @@ class Mainpage extends StatelessWidget {
             ),
           )
         )
+      )
     );
   }
 }

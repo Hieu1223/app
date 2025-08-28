@@ -1,4 +1,4 @@
-import 'package:app/viewmodels/mainpageviewmodel.dart';
+import 'package:app/viewmodels/tokenization_page_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +16,7 @@ class _InputTextFieldState extends State<InputTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<MainpageViewModel>(context);
+    final vm = Provider.of<TokenizationPageViewModel>(context);
 
     void onSubmit(String text) {
       vm.lookUp(text);

@@ -1,8 +1,7 @@
-import 'package:app/models/deck_model.dart';
 import 'package:app/models/dictionary_entry.dart';
 import 'package:app/services/dictionary/dictionary.dart';
 import 'package:app/services/tokenization/tokenizer.dart';
-import 'package:app/views/common/check_box_list.dart';
+import 'package:app/viewmodels/check_box_list_view_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
@@ -11,7 +10,7 @@ import 'package:logger/logger.dart';
 
 
 
-class MainpageViewModel extends ChangeNotifier {
+class TokenizationPageViewModel extends CheckBoxListViewModel {
 
   
   TextEditingController textController = TextEditingController();
@@ -19,17 +18,16 @@ class MainpageViewModel extends ChangeNotifier {
   //progress bar
   String progressComment = "";
   double progress = 0;
-  //check box states;
-  CheckBoxStates selectBoxState = CheckBoxStates(0);
-  CheckBoxStates deckSelectBoxState = CheckBoxStates(0);
 
   //UI state
   bool allowSubmit = true;
   bool enabledSelectBoxes = false;
 
   //look up logic
-  Future<List<DictionaryEntry>> lastLookUpResultFuture = Future(()=>[]);
-  List<DictionaryEntry> lastLookUpResult = List.empty();
+  Future<List<DictionaryEntry>> lastLookUpResultFuture = Future(()=>List.empty(growable: true));
+  List<DictionaryEntry> lastLookUpResult = List.empty(growable: true);
+
+  TokenizationPageViewModel();
 
 
 
@@ -40,7 +38,7 @@ class MainpageViewModel extends ChangeNotifier {
     notifyListeners();
     lastLookUpResultFuture = _doLookUp(text);
     lastLookUpResult =  await lastLookUpResultFuture;
-    selectBoxState = CheckBoxStates(lastLookUpResult.length);
+    setLength(lastLookUpResult.length);
     allowSubmit = true;
     enabledSelectBoxes = true;
     notifyListeners();
@@ -70,33 +68,20 @@ class MainpageViewModel extends ChangeNotifier {
   }
 
   void addSelectionToDeck(){
-    for(int i = 0; i < selectBoxState.states.length; i++){
-      if(selectBoxState.states[i]){
+    for(int i = 0; i < length; i++){
+      if(getState(i)){
         Logger().d("Adding ${lastLookUpResult[i].word} to deck");
       }
     }
   }
-  List<DeckModel> getDecks(){
-    List<DeckModel> decks =[
-      DeckModel(name: "Default Deck", id: 1),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-      DeckModel(name: "My Deck", id: 2),
-    ];
-    deckSelectBoxState = CheckBoxStates(decks.length);
-    return decks;
+  List<DictionaryEntry> getSelectedTokens(){
+    List<DictionaryEntry> selected = [];
+    for(int i = 0; i < length; i++){
+      if(states[i]){
+        selected.add(lastLookUpResult[i]);
+      }
+    }
+    return selected;
   }
   void notify(){
     notifyListeners();

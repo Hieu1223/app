@@ -1,7 +1,9 @@
 import 'package:app/models/dictionary_entry.dart';
-import 'package:app/viewmodels/mainpageviewmodel.dart';
+import 'package:app/viewmodels/tokenization_page_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+
 
 
 
@@ -10,9 +12,10 @@ class TokenList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<MainpageViewModel>();
+    final vm = context.watch<TokenizationPageViewModel>();
     Future<List<DictionaryEntry>> lookUpResult = vm.lastLookUpResultFuture;
 
+    
 
     return FutureBuilder(future: lookUpResult, builder: (context, snapshot) {
       if(snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData){
@@ -39,7 +42,7 @@ class TokenizationProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<MainpageViewModel>();
+    final vm = context.watch<TokenizationPageViewModel>();
     return Column(
       children: [
         LinearProgressIndicator(
@@ -80,8 +83,8 @@ class TokenCardCheckBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<MainpageViewModel>();
-    return Checkbox(value: vm.selectBoxState.states[index], onChanged: (value){vm.selectBoxState.toggle(index); vm.notify();});
+    final vm = context.watch<TokenizationPageViewModel>();
+    return Checkbox(value: vm.getState(index), onChanged: (value){vm.toggle(index);});
   }
 }
 

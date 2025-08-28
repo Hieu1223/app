@@ -80,6 +80,7 @@ class LocalDictionary implements DictionaryBase {
     final kanji = await _lookUpKanjis(kanjiIds);
 
     return DictionaryEntry(
+      id: dictEntry['id'] as int,
       word: dictEntry['word'].toString(),
       kanjiReading: dictEntry['kanji_reading'].toString(),
       kanji: kanji,
